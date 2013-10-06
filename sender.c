@@ -8,7 +8,9 @@
 #include <unistd.h>
 
 #define BUFLEN 512
-#define MSGLEN 150
+#define DATALEN 150
+#define HEADERLEN 10
+#define MSGLEN (DATALEN+HEADERLEN)
 #define NPACK 10
 #define PORT 9988
 #define NUM_GLOBES 50
@@ -44,9 +46,9 @@ int main(int argc, char** argv)
 
     // Fill up the first 150 bytes of buf with the colours
     for (j=0, k=0; j < NUM_GLOBES; j++) {
-        buf[k++] = r;
-        buf[k++] = g;
-        buf[k++] = b;
+        buf[HEADERLEN + k++] = r;
+        buf[HEADERLEN + k++] = g;
+        buf[HEADERLEN + k++] = b;
     }
 
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1)
@@ -60,12 +62,12 @@ int main(int argc, char** argv)
       exit(1);
     }
 
-    for (i=0; i<NPACK; i++) {
-      printf("Sending packet %d\n", i);
+    /*for (i=0; i<NPACK; i++) {
+      printf("Sending packet %d\n", i);*/
       //sprintf(buf, "This is packet %d\n", i);
       if (sendto(s, buf, MSGLEN, 0, (struct sockaddr*) &si_other, slen)==-1)
         diep("sendto()");
-    }
+    /*}*/
 
     close(s);
     return 0;

@@ -10,7 +10,9 @@
 #define BUFLEN 512
 #define NPACK 10
 #define PORT 9988
-#define MSGLEN 150
+#define DATALEN 150
+#define HEADERLEN 10
+#define MSGLEN (DATALEN+HEADERLEN)
 
 #ifdef TARGET
 #include "spi.h"
@@ -24,15 +26,19 @@ void diep(char *s)
 
 void render(char* buf) {
 int j, k;
+char* obf;
+
+    obf = &buf[HEADERLEN];
 
 #ifdef TARGET
     // And send it on its merry way
-    spi_send(buf, MSGLEN); 
-#else
+    spi_send(obf, DATALEN); 
+#endif
+#ifdef DEBUG
     // This is where we get dirty with spi.h
     // For the moment, just show the values in the buffer.
-    for (j=0, k=0; j < MSGLEN; j++) {
-        printf("%02x ", (uint8_t) buf[j]);
+    for (j=0, k=0; j < DATALEN; j++) {
+        printf("%02x ", (uint8_t) obf[j]);
         if ((++k % 3) == 0) {
             printf("  ");
         }
@@ -76,9 +82,11 @@ int main(void)
        printf("Rejecting packet of length %d from %s:%d\nData: %s\n\n", (int) num_datas,
              inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port), buf);  
       } else {
-        /*printf("Received packet of length %d from %s:%d\nData: %s\n\n", (int) num_datas,
-             inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port), buf);*/
-        render(buf);
+#ifdef DEBUG
+        printf("Received packet of length %d from %s:%d\n", (int) num_datas,
+             inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
+#endif
+        render(buf);       // Render from here.
       }
     }
 
